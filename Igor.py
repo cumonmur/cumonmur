@@ -5,7 +5,6 @@ import numpy as np
 
 auv = mur.mur_init()
 cap = cv.VideoCapture(0)
-bin = cv.VideoCapture(1)
 mur_view = auv.get_videoserver()
 low_hsv_yellow = (20, 70, 30)
 max_hsv_yellow = (70, 255, 255)
@@ -80,7 +79,6 @@ def go_yaw(yaw, speed, sec):
     time_flag = time.time()
     while time.time() - time_flag < sec:
         keep_yaw(yaw,speed)
-        cv.waitKey(1)
 
 def go_center_to_x(x, xcenter = 320,sec = 1, k = 1):
     time_flag = time.time()
