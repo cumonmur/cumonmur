@@ -1,7 +1,6 @@
 import pymurapi as mur
 import cv2 as cv
 import time
-import numpy as np
 
 auv = mur.mur_init()
 cap = cv.VideoCapture(0)
@@ -45,7 +44,7 @@ def gate():
         _, x1 = list[0]
         _, x2 = list[1]
         x = (x2 + x1) // 2
-        print("ураб2", x)
+        print(x)
         return x
 
 
@@ -66,7 +65,7 @@ def find_shape(img, hsv_min, hsv_max, area1=400):  # Поиск Фигур
 
             try:
                 x = int(moments["m10"] / moments["m00"])
-                y = int(moments["m01"] / moments["m00"])
+                # y = int(moments["m01"] / moments["m00"])
 
                 list_cont.append([cv.contourArea(c), x])
                 list_cont.sort(reverse=True)
@@ -92,6 +91,8 @@ def go_center_to_x(x, xcenter = 320,sec = 1, k = 1, like_e = 10):
         if e > like_e:
             time_flag = time.time()
     return auv.get_yaw()
+
+print("start")
 
 while True:
     list = gate()
