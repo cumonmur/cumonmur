@@ -80,7 +80,7 @@ def go_yaw(yaw, speed, sec):
     while time.time() - time_flag < sec:
         keep_yaw(yaw,speed)
 
-def go_center_to_x(x, xcenter = 320,sec = 1, k = 1):
+def go_center_to_x(x, xcenter = 320,sec = 1, k = 1, like_e = 10):
     time_flag = time.time()
     while time.time() - time_flag < sec:
         e = xcenter - x
@@ -89,6 +89,8 @@ def go_center_to_x(x, xcenter = 320,sec = 1, k = 1):
         auv.set_motor_power(1, clamp(res))
         auv.set_motor_power(0, clamp(-res))
         time.sleep(0.01)
+        if e > like_e:
+            time_flag = time.time()
     return auv.get_yaw()
 
 while True:
