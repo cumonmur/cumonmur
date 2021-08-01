@@ -54,7 +54,7 @@ class PD(object):  # Класс ПД регулятора
         # ДЛЯ МОТОРОВ И ДВИЖЕНИЯ
 
 
-def clamp(e, max, min):  # Функция (как её назвать?)
+def clamp(e, max, min):  # Функция
     if e > max: return max
     if e < min: return min
     return e
@@ -209,19 +209,33 @@ def tuch(img):  # Функция для столкновения к буйку, 
         auv.set_motor_power(left_motor, -20)
         auv.set_motor_power(right_motor, -20)
     stab_area(area, 400)  # Здесь Я не Уверен Пацаны, Но это типо Стабилизация по площади чтобы
-    # Робот отплыл назад и стабилизировался после того как столкнулся
+    # Робот отплыл назад (на чуть-чуть) и стабилизировался после того как столкнулся
     # c буём
 
-
-def movement_to_next_object(img, timer=time.time()):  # Функция для движения в функции remember_color()
+def go_left(img, timer=time.time()):  # Функция для движения в функции remember_color()
     x_to_set, _ = find_x_of_moment(img)
     stable_x(auv.get_yaw(), x_to_set)
-    stable_x(auv.get_yaw(), auv.get_yaw() - 90)  # Разворот на 90 градусов налево
+    go_90_left = auv.get_yaw() - 90
+    stable_x(auv.get_yaw(), go_90_left)  # Разворот на 90 градусов налево
     while time.time() - timer < 1:
         auv.set_motor_power(left_motor, 50)
         auv.set_motor_power(right_motor, 50)
-    stable_x(auv.get_yaw(), auv.get_yaw() + 90)  # Разворот на 90 градусов направо
+    go_90_right = auv.get_yaw() + 90
+    stable_x(auv.get_yaw(), go_90_right)  # Разворот на 90 градусов направо   (Вообще, это работает?)
     stable_x(auv.get_yaw(), x_to_set)
+
+def go_right(img, timer = time.time()): #Функция для движения Вправо в search_buoys_in_order()
+    x_to_set, _ = find_x_of_moment(img)
+    stable_x(auv.get_yaw(), x_to_set)
+    go_90_right = auv.get_yaw() + 90
+    stable_x(auv.get_yaw(), go_90_right)  # Разворот на 90 градусов налево
+    while time.time() - timer < 1:
+        auv.set_motor_power(left_motor, 50)
+        auv.set_motor_power(right_motor, 50)
+    go_90_left = auv.get_yaw() - 90
+    stable_x(auv.get_yaw(), go_90_left)  # Разворот на 90 градусов направо   (Вообще, это работает?)
+    stable_x(auv.get_yaw(), x_to_set)
+
 
 
 def remember_color(img):  # Запоминание цветов и их мест (индексов) (с права на лево)
@@ -234,9 +248,74 @@ def remember_color(img):  # Запоминание цветов и их мест
             remembered_color = "yellow"
         elif color == "red":
             remembered_color = "red"
-        movement_to_next_object(img)
+        go_left(img)
         return remembered_color
 
+def search_buoys_in_order(img):  # Поиск Буёв по порядку (Зелёный, Жёлтый, Красный) и Сразу совместил, что он их косаится (я не русский)
+    remembered_color = remember_color(img) #Вспоминаем наш список цветов
+    index_now = 3 # Мы на 3-ем буе, значит на 3-ем индексе
+    index_green = remembered_color.index("green") # Узнаём индекс Зелёного
+    index_yellow = remembered_color.index("yellow") # Узнаём индекс Жёлтого
+    index_red = remembered_color.index("red") # Узнаём индекс Красного
+    index_to_go = index_now - index_green # Узнаём, сколько нужно проплыть буёв до Зелёного
+    while(index_to_go):
+        go_right(img)
+    if index_yellow > index_green: # Если Буй слева, то налево
+        index_to_go = index_yellow - index_green
+        while (index_to_go):
+            go_left(img)
+        if index_red > index_yellow:
+            index_to_go = index_red - index_yellow
+            while (index_to_go):
+                go_left(img)
+        elif index_red < index_yellow:
+            index_to_go = index_yellow - index_red
+            while (index_to_go):
+                go_right(img)
+    elif index_yellow < index_green: # Если Буй справа, то направо
+        index_to_go = index_green - index_yellow
+        while (index_to_go):
+            go_right(img)
+        if index_red > index_yellow:
+            index_to_go = index_red - index_yellow
+            while (index_to_go):
+                go_left(img)
+        elif index_red < index_yellow:
+            index_to_go = index_yellow - index_red
+            while (index_to_go):
+                go_right(img)
 
-def search_buoys_in_order(img):  # Поиск Буёв по порядку (Зелёный, Жёлтый, Красный)
-    remembered_color = remember_color(img)
+        # Объясниение этого не понятного:
+        # После того как мы запомнили Где какой цвет, т. е. Индекс
+        # Мы начинаем искать в скписке/массиве (я буду называть список) -
+        # Зелёный
+        # когда мы его нашли, вычесляем с помощью формулы, т. к. мы на последнем
+        # 3-ем индексе, то мы берём индекс зелёного и сравниваем с индексом 3, полученную
+        # разность берём как Повторение для функции движения ВПРАВО (если 3 индекс совпадает
+        # с индексом зелёного, то цикл будит повторяться 0 раз, т. е. не будит действовать)
+        # После этого мы сравниваем индекс Жёлтого и Зелёного
+        # Тут Примечание, Жёлтый может быть ЛИБО слево от Зелёного, ЛИБО справа!
+        # Для этого я сравниваю индексы, Если Индекс Жёлтого Больше, значит нужно налево, если
+        # Меньше, то направо. После этого я "ПОЛЕНИЛСЯ" и сделал тоже самое для красного
+        # Только идут сравнения индексов сразу в двух if (первый, где жёлтый Больше зелёного, второй, где
+        #                                                 жёлтый Меньше зелёного)
+
+        #ПОСЛЕ ПРОЧТЕНИЯ КОМЕНТАРИЯ, ЖЕЛАТЕЛЬНО ЕГО УДАЛИТЬ!!!!!
+
+
+while True:
+    img = "frame"# Это сообщение для Игоря!
+          # Игорь, я не знаю как ты предпочитаешь, через функцию SHOW() или по-другому, поэтому на своё усмотрение
+          # Крч Помоги Ване, он здесь будит точно тупить.
+    search_buoys_in_order(img)
+
+
+    # Итак, пацаны, ВАША ЗАДАЧА(И):
+    #    1. Подобрать 4 hsv:
+    #        Зелёный, Жёлтый, Краный(светлый), Крачный(тёмный) (если не поняли что такое красное, спросите Германа)
+    #    2. Проверить все функции Стабилизации (можно добавить стабилизацию по area для доп стабилизации,
+    #                                                       к буям (эта функция УЖЕ ЕСТЬ) )
+    #    3. Проверить Таймеры "прохода" между буями
+    #    4. Удалить ЛИШНИИ Коментарии (как этот)
+#        5. Работает Ли Цикл While(), как повтор? Ну типо:
+#           Для повторения 3 раза - while(3)
