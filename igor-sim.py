@@ -3,14 +3,8 @@ import cv2 as cv
 import time
 
 auv = mur.mur_init()
-cap = cv.VideoCapture(0)
-mur_view = auv.get_videoserver()
 low_hsv_yellow = (20, 70, 30)
 max_hsv_yellow = (70, 255, 255)
-
-def show():
-    ok, frame = cap.read()
-    return frame
 
 def clamp(val):
     if val > 100:
@@ -31,29 +25,35 @@ def clamp_angle(angle):
 def keep_yaw(yaw_to_set, speed, k = 1):
     current_yaw = auv.get_yaw()
     e = clamp_angle(current_yaw - yaw_to_set)
-    print(e)
     res = e * k
     auv.set_motor_power(1, clamp(res) + speed)
     auv.set_motor_power(0, clamp(-res) - speed)
     time.sleep(0.01)
     return e
 
-def gate():
-    list = find_shape(show(), low_hsv_yellow, max_hsv_yellow)
-    if len(list) > 2:
+def gate(xcenter = 160, k = 0.3):
+    frame = auv.get_image_front()
+    list = find_shape(frame, low_hsv_yellow, max_hsv_yellow)
+    if len(list) > 1:
         _, x1 = list[0]
         _, x2 = list[1]
         x = (x2 + x1) // 2
-        cv.circle(frame, (x, 240), 5, (0,100,100), -1)
-        print(x)
-        return x
+        cv.circle(frame, (x, 120), 5, (0,255,255), -1)
+        e = xcenter - x
+        print(e, xcenter, x)
+        res = e * k
+        auv.set_motor_power(1, clamp(res))
+        auv.set_motor_power(0, clamp(-res))
+        return e
+    cv.waitKey(1)
+    return 0
 
 
-def find_shape(img, hsv_min, hsv_max, area1=400):  # Поиск Фигур
+def find_shape(img, hsv_min, hsv_max, area1=100):  # Поиск Фигур
     img_hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
 
     img_bin = cv.inRange(img_hsv, hsv_min, hsv_max)
-    mur_view.show(img_bin, 1)
+    cv.imshow("bin", img_bin)
     cnt, _ = cv.findContours(img_bin, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     list_cont = []
     if cnt:
@@ -72,33 +72,26 @@ def find_shape(img, hsv_min, hsv_max, area1=400):  # Поиск Фигур
                 list_cont.sort(reverse=True)
             except ZeroDivisionError:
                 pass
-    mur_view.show(img, 0)
+    cv.imshow("img", img)
+    cv.waitKey(1)
     return list_cont
 
 def go_yaw(yaw, speed, sec):
     time_flag = time.time()
     while time.time() - time_flag < sec:
         keep_yaw(yaw,speed)
-
-def go_center_to_x(x, xcenter = 320,sec = 1, k = 1, like_e = 10):
-    time_flag = time.time()
-    while time.time() - time_flag < sec:
-        e = xcenter - x
-        print(e)
-        res = e * k
-        auv.set_motor_power(1, clamp(res))
-        auv.set_motor_power(0, clamp(-res))
-        time.sleep(0.01)
-        if e > like_e:
-            time_flag = time.time()
-    return auv.get_yaw()
-
+    
+    
 print("start")
-
 while True:
-    x = gate()
-    # if x is not None:
-    #     yaw = go_center_to_x(x)
-    #     go_yaw(yaw, 50, 5)
+    time_flag = time.time()
+    while time.time() - time_flag < 2:
+        e = gate()
+        if e > 10:
+            time_flag = time.time()
+    yaw = auv.get_yaw()
+    print(yaw)
+    break
+    
 
 
