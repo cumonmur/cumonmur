@@ -28,11 +28,10 @@ def clamp_angle(angle):
 def keep_yaw(yaw_to_set, speed, k = 1):
     current_yaw = auv.get_yaw()
     e = clamp_angle(current_yaw - yaw_to_set)
-    res = e * k
+    res = clamp(e * k)
     print(e)
-    auv.set_motor_power(1, clamp(res))
-    auv.set_motor_power(0, clamp(-res))
-    time.sleep(0.01)
+    auv.set_motor_power(1, res - 100)
+    auv.set_motor_power(0, -res + 100)
     return e
 
 def gate(xcenter = 160, k = 0.3):
