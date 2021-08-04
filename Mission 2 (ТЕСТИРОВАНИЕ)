@@ -241,6 +241,7 @@ def go_right(img, timer = time.time()): #Функция для движения 
 def remember_color(img):  # Запоминание цветов и их мест (индексов) (с права на лево)
     color = define_color_nearest_buoy(img)
     remembered_color = []
+    remembered_color[0] = " "
     while (3):
         if color == "green":
             remembered_color = "green"
@@ -248,7 +249,7 @@ def remember_color(img):  # Запоминание цветов и их мест
             remembered_color = "yellow"
         elif color == "red":
             remembered_color = "red"
-        go_left(img)
+        go_left(img) # Плывём В лево
         return remembered_color
 
 def search_buoys_in_order(img):  # Поиск Буёв по порядку (Зелёный, Жёлтый, Красный) и Сразу совместил, что он их косаится (я не русский)
@@ -304,11 +305,8 @@ def search_buoys_in_order(img):  # Поиск Буёв по порядку (Зе
 
 
 while True:
-    img = "frame"# Это сообщение для Игоря!
-          # Игорь, я не знаю как ты предпочитаешь, через функцию SHOW() или по-другому, поэтому на своё усмотрение
-          # Крч Помоги Ване, он здесь будит точно тупить.
+    img = auv.get_image_front()
     search_buoys_in_order(img)
-
 
     # Итак, пацаны, ВАША ЗАДАЧА(И):
     #    1. Подобрать 4 hsv:
