@@ -260,30 +260,37 @@ def search_buoys_in_order(img):  # Поиск Буёв по порядку (Зе
     index_to_go = index_now - index_green # Узнаём, сколько нужно проплыть буёв до Зелёного
     while(index_to_go):
         go_right(img)
+    tuch(img)
     if index_yellow > index_green: # Если Буй слева, то налево
         index_to_go = index_yellow - index_green
         while (index_to_go):
             go_left(img)
+        tuch(img)
         if index_red > index_yellow:
             index_to_go = index_red - index_yellow
             while (index_to_go):
                 go_left(img)
+            tuch(img)
         elif index_red < index_yellow:
             index_to_go = index_yellow - index_red
             while (index_to_go):
                 go_right(img)
+            tuch(img)
     elif index_yellow < index_green: # Если Буй справа, то направо
         index_to_go = index_green - index_yellow
         while (index_to_go):
             go_right(img)
+        tuch(img)
         if index_red > index_yellow:
             index_to_go = index_red - index_yellow
             while (index_to_go):
                 go_left(img)
+            tuch(img)
         elif index_red < index_yellow:
             index_to_go = index_yellow - index_red
             while (index_to_go):
                 go_right(img)
+            tuch(img)
 
         # Объясниение этого не понятного:
         # После того как мы запомнили Где какой цвет, т. е. Индекс
