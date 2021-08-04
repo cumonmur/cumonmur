@@ -236,11 +236,10 @@ def go_right(img, timer = time.time()): #Функция для движения 
     stable_x(auv.get_yaw(), go_90_left)  # Разворот на 90 градусов направо   (Вообще, это работает?)
     stable_x(auv.get_yaw(), x_to_set)
 
-
-
 def remember_color(img):  # Запоминание цветов и их мест (индексов) (с права на лево)
     color = define_color_nearest_buoy(img)
     remembered_color = []
+    remembered_color[0] = " "
     while (3):
         if color == "green":
             remembered_color = "green"
